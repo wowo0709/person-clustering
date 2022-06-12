@@ -77,7 +77,7 @@ def fingerprints(images, model):
     """
     fingerprints = {}
     for fn,image in images.items():
-        print(fn)
+        # print(fn)
         fingerprints[fn] = fingerprint(image, model)
     return fingerprints
 
