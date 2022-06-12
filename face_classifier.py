@@ -78,7 +78,7 @@ class FaceClassifier():
             return None
         
 
-    def detect_faces(self, frames, batch_size):
+    def detect_faces(self, frames, batch_size=16, face_cloth_weights=[1.0, 1.0]):
         # face locations
         batch_face_locations = face_recognition.batch_face_locations(frames, number_of_times_to_upsample=0, batch_size=batch_size)
         frames = [frames[i] for i in range(len(frames)) if 1 <= len(batch_face_locations[i]) <= 4]
@@ -98,6 +98,7 @@ class FaceClassifier():
         upper_body_images_batch = []
         clothes_batch = []
         
+        # face encodings
         for frame_number_in_batch, face_locations in enumerate(batch_face_locations):
             face_encodings = []
             for face_location in face_locations:
@@ -116,20 +117,18 @@ class FaceClassifier():
             clothes_batch.extend(preprocessed_cloth_images)
 
         # cloth encodings
-        # if len(clothes_batch) > 30:
         cloth_encodings = calc.fingerprint(clothes_batch, cloth_encoding_model, device = torch.device(device='cuda'))
 
+        # calculate fingerprints (feature vectors)
+        face_weight, cloth_weight = face_cloth_weights
         for i in range(len(face_encodings_batch)):
             # normalize
             normalized_face_encoding = face_encodings_batch[i] / np.linalg.norm(face_encodings_batch[i])
             normalized_cloth_encoding = cloth_encodings[i] / np.linalg.norm(cloth_encodings[i])
             # concat features [face | cloth]
-            face_weight, cloth_weight = 1, 1
             encoding = np.concatenate((normalized_face_encoding*face_weight, normalized_cloth_encoding*cloth_weight), axis=0) # 128-d + 128-d
-
-            filename = str_ms + str(i) + ".png"
             # save image
-            # face = Face(str_ms + str(i) + ".png", upper_body_image, encoding)
+            filename = str_ms + str(i) + ".png"
             filepath = os.path.join(self.save_dir, filename)
             cv2.imwrite(filepath, upper_body_images_batch[i])
             print('image saved path: ', filepath)
