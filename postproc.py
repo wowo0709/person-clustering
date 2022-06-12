@@ -88,3 +88,65 @@ def make_links(clusters, cluster_dr):
                 link = pj(dr, os.path.basename(fn))
                 os.makedirs(os.path.dirname(link), exist_ok=True)
                 os.symlink(os.path.abspath(fn), link)
+
+
+def merge_clusters(cluster_dict, fingerprints, FACE_THRESHOLD=0.18, CLOTH_THRESHOLD=0.12, iteration=1) -> dict:
+    '''
+    parameters:
+        cluster_dict: calc.cluster() 의 return 값 (dict / key=cluster_size(int), value=clusters(2d-array))
+        fingerprints: feature vector dictionary (key=filepath, value=feature vector)
+        iteration: merge 반복 횟수
+        FACE_THRESHOLD
+        CLOTH_THRESHOLD
+    return:
+        merged_clusters: calc.cluster() 의 return 값과 동일한 형태 (dict / key=cluster_size(int), value=clusters(2d-array))
+    '''
+
+    for _ in range(iteration):
+        cluster_list = sorted([[key, value] for key, value in cluster_dict.items()], key=lambda x:x[0], reverse=True)
+        cluster_fingerprints = [] # [(face, cloth), ...]
+        cluster_cnt = 0
+
+        for cluster_with_num in cluster_list:
+            num, clusters = cluster_with_num
+            for idx, cluster in enumerate(clusters):
+                cluster_face_fingerprint = np.zeros((128,))
+                cluster_cloth_fingerprint = np.zeros((128,))
+                i = 0
+                for person in cluster:
+                    encoding = fingerprints[person]
+                    face, cloth = encoding[:128], encoding[128:]
+                    cluster_face_fingerprint += face
+                    cluster_cloth_fingerprint += cloth
+                    i += 1
+                assert i > 0, 'cluster is empty!'
+                cluster_face_fingerprint /= i
+                cluster_cloth_fingerprint /= i
+
+                cluster_fingerprints.append([(num, idx), (cluster_face_fingerprint, cluster_cloth_fingerprint)])
+                cluster_cnt += 1
+
+        merged = []
+        merged_clusters = dict()
+
+        for i in range(cluster_cnt):
+            if cluster_fingerprints[i][0] in merged:
+                continue
+            big_num, big_idx = cluster_fingerprints[i][0]
+            person_list = cluster_dict[big_num][big_idx]
+            merged_num = big_num
+            for j in range(i+1, cluster_cnt):
+                cluster_face_norm = round(np.linalg.norm(cluster_fingerprints[i][1][0] - cluster_fingerprints[j][1][0]),3)
+                cluster_cloth_norm = round(np.linalg.norm(cluster_fingerprints[i][1][1] - cluster_fingerprints[j][1][1]),3)
+                if cluster_face_norm < FACE_THRESHOLD or cluster_cloth_norm < CLOTH_THRESHOLD:
+                    small_num, small_idx = cluster_fingerprints[j][0]
+                    merged_num += small_num
+                    person_list += cluster_dict[small_num][small_idx]
+                    merged.append(cluster_fingerprints[j][0])
+                    
+            merged_clusters[merged_num] = merged_clusters.get(merged_num, [])
+            merged_clusters[merged_num].append(person_list)
+
+        cluster_dict = merged_clusters
+
+    return merged_clusters
