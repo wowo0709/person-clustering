@@ -16,8 +16,7 @@ import calc
 
 
 class FaceClassifier():
-    def __init__(self, ratio, save_dir):
-        self.ratio = ratio
+    def __init__(self, save_dir):
         self.save_dir = save_dir
 
     def get_face_and_cloth_image(self, frame, boxes):
@@ -131,7 +130,7 @@ class FaceClassifier():
             filename = str_ms + str(i) + ".png"
             filepath = os.path.join(self.save_dir, filename)
             cv2.imwrite(filepath, upper_body_images_batch[i])
-            print('image saved path: ', filepath)
+            # print('image saved path: ', filepath)
             # save fingerprint
             fingerprints[filepath] = encoding
 

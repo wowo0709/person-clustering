@@ -124,19 +124,6 @@ def timestamp(filename, source='auto'):
         raise ValueError("source not in ['stat', 'exif', 'auto']")
 
 
-# TODO some code dups below, fix later by fancy factory functions
-
-# keras.preprocessing.image.load_img() uses img.rezize(shape) with the default
-# interpolation of Image.resize() which is pretty bad (see
-# imagecluster/play/pil_resample_methods.py). Given that we are restricted to
-# small inputs of 224x224 by the VGG network, we should do our best to keep as
-# much information from the original image as possible. This is a gut feeling,
-# untested. But given that model.predict() is 10x slower than PIL image loading
-# and resizing .. who cares.
-#
-# (224, 224, 3)
-##img = image.load_img(filename, target_size=size)
-##... = image.img_to_array(img)
 def _image_worker(filename, size):
     # Handle PIL error "OSError: broken data stream when reading image file".
     # See https://github.com/python-pillow/Pillow/issues/1510 . We have this
@@ -148,7 +135,7 @@ def _image_worker(filename, size):
     # side would be good, but let's hope that an OSError doesn't cover too much
     # ground when reading data from disk :-)
     try:
-        print(filename)
+        # print(filename)
         img = PIL.Image.open(filename).convert('RGB').resize(size, resample=3)
         arr = np.asarray(img).astype(int)
         return filename, arr
