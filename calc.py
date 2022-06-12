@@ -6,55 +6,44 @@ from scipy.spatial import distance
 from scipy.cluster import hierarchy
 from sklearn.decomposition import PCA
 
-# from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
-from tensorflow.keras.models import Model
-import tensorflow.keras as keras
+# from tensorflow.keras.models import Model
+# import tensorflow.keras as keras
+import torchvision.transforms as transforms
+import torchvision.models as models
+import torch
 
+from PIL import Image
+
+data_transform = transforms.Compose([
+    transforms.Resize((224,224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
 
 pj = os.path.join
 
 
 def get_model():
-    """Keras Model of the VGG16 network, with the output layer set to `layer`.
 
-    The default layer is the second-to-last fully connected layer 'fc2' of
-    shape (4096,).
+    '''pytorch - resnet50
+    base_model = models.resnet50(pretrained=True)
+    model = torch.nn.Sequential(
+        *(list(base_model.children())[:6]), # conv3_x, (28, 28, 512)
+        torch.nn.AdaptiveAvgPool2d((1,1)),
+        torch.nn.Flatten()
+    )
+    '''
+    
+    '''pytorch - resnet18'''
+    base_model = models.resnet18(pretrained=True)
+    model = torch.nn.Sequential(
+        *(list(base_model.children())[:6]), # extract from conv3_x block (28, 28, 128)
+        torch.nn.AdaptiveAvgPool2d((1,1)),
+        torch.nn.Flatten()
+    )
+    
 
-    Parameters
-    ----------
-    layer : str
-        which layer to extract (must be of shape (None, X)), e.g. 'fc2', 'fc1'
-        or 'flatten'
-
-    Notes
-    -----
-    ::
-
-        base_model.summary()
-            ....
-            block5_conv4 (Conv2D)        (None, 15, 15, 512)       2359808
-            _________________________________________________________________
-            block5_pool (MaxPooling2D)   (None, 7, 7, 512)         0
-            _________________________________________________________________
-            flatten (Flatten)            (None, 25088)             0
-            _________________________________________________________________
-            fc1 (Dense)                  (None, 4096)              102764544
-            _________________________________________________________________
-            fc2 (Dense)                  (None, 4096)              16781312
-            _________________________________________________________________
-            predictions (Dense)          (None, 1000)              4097000
-    """
-    # base_model = VGG16(weights='imagenet', include_top=True)
-    base_model = ResNet50(weights='imagenet', include_top=True)
-    # model = Model(inputs=base_model.input,
-    #               outputs=base_model.get_layer(layer).output)
-    model = keras.Sequential(
-    [
-        Model(inputs=base_model.input, outputs=base_model.get_layer('conv3_block4_out').output), # (None, 28, 28, 512)
-        keras.layers.GlobalAveragePooling2D() # (None, 512)
-    ]
-)
     return model
 
 
@@ -74,27 +63,14 @@ def fingerprint(image, model):
     -------
     fingerprint : 1d array
     """
-    # (224, 224, 1) -> (224, 224, 3)
-    #
-    # Simple hack to convert a grayscale image to fake RGB by replication of
-    # the image data to all 3 channels.
-    #
-    # Deep learning models may have learned color-specific filters, but the
-    # assumption is that structural image features (edges etc) contibute more to
-    # the image representation than color, such that this hack makes it possible
-    # to process gray-scale images with nets trained on color images (like
-    # VGG16).
-    #
-    # We assme channels_last here. Fix if needed.
-    if image.shape[2] == 1:
-        image = image.repeat(3, axis=2)
 
-    # (1, 224, 224, 3)
-    arr4d = np.expand_dims(image, axis=0)
+    pil_image = Image.fromarray((image).astype(np.uint8))# .convert('RGB')# .resize((224,224), resample=3)
+    
+    arr3d = data_transform(pil_image)
+    
+    arr4d_tt = arr3d.unsqueeze(0)
 
-    # (1, 224, 224, 3)
-    arr4d_pp = preprocess_input(arr4d)
-    ret = model.predict(arr4d_pp)[0,:]
+    ret = model.forward(arr4d_tt)[0, :].detach().numpy()
 
     return ret
 
