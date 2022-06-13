@@ -8,10 +8,8 @@ import re
 import numpy as np
 import PIL.Image
 
-# from . import exceptions
-# from . import calc as ic
-import exceptions
-import calc as ic
+from . import exceptions
+from . import calc as ic
 
 pj = os.path.join
 
