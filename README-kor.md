@@ -1,5 +1,6 @@
 # person-clustering
-![header](https://capsule-render.vercel.app/api?type=waving&color=0:bee1e8,100:ddc7fc&height=250&section=header)
+
+![image](https://user-images.githubusercontent.com/70505378/173368969-ec9a75b7-7bd0-4f41-86b2-be70b25c1806.png)
 
 ## Contents
 - Introduction

@@ -1,5 +1,7 @@
 # person-clustering
 
+![image](https://user-images.githubusercontent.com/70505378/173368969-ec9a75b7-7bd0-4f41-86b2-be70b25c1806.png)
+
 ## Contents
 - Introduction
 - Related Works
