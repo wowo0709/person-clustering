@@ -119,7 +119,7 @@ In addition, the clustering results were further enhanced by cluster merging or 
 ### How to use
 - run `demo.ipynb` 
 
-**Face Extractor 인스턴스 생성**
+**Create `Face Extractor` Instance**
 ```python
 # Create FaceExtractor instance
 video_num = 0
@@ -132,7 +132,8 @@ face_extractor = FaceExtractor(
 )
 ```
 
-**Face Extractor 실행** <br>
+**Run `Face Extractor`** <br>
+
 parameters
 - face_cnt: Number of faces to be extracted from the image
 - frame_batch_size: Number of frames to process at a time
@@ -159,6 +160,7 @@ fingerprints = face_extractor.run(
 ```
 
 **Clustering & Print result**
+
 parameters
 - sim: similarity threshold (the higher, the stricter)
 - min_csize: Eliminate clusters with sizes less than `min_csize`
