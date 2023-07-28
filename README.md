@@ -104,10 +104,10 @@ In addition, the clustering results were further enhanced by cluster merging or 
 ``` 
 
 - `clustering`: Files Required for Clustering
-    - `calc.py`: clustering, feature extraction 등의 핵심 연산 함수들이 정의되어 있는 파일
-    - `exceptions.py`: File with key operational functions such as clustering, feature extraction, etc. defined.
-    - `icio.py`: File with IO (Input/Output) related functions defined
-    - `postproc.py`: File with Post-processing functions defined
+    - `calc.py`: File with some util and feature computing functions
+    - `exceptions.py`: File with core operation functions (such as clustering, feature extraction, etc.)
+    - `icio.py`: File with IO (Input/Output) related functions
+    - `postproc.py`: File with Post-processing functions
 - `outdated_files`: Files used in previous versions
 - `demo.ipynb`: Demo file
 - `face_extractor.py`: Main code file (frame extraction, face detection, cloth detection, feature extraction, etc.)
